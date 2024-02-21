@@ -146,3 +146,36 @@ def Encoder_f(num_layers, mlp_dim, num_heads, inputs):
     encoded = layers.LayerNormalization(name='encoder_norm')(x)
     return encoded
 
+'''
+Building blocks of ViT
+Transformer Encoder Block (Encoder_f)
+Final Classification
+'''
+
+##########################
+# hyperparameter section #
+##########################
+transformer_layers = 6
+patch_size = 4
+hidden_size = 64
+num_heads = 4
+mlp_dim = 128
+##########################
+rescale_layer = tf.keras.Sequential([layers.experimental.preprocessing.Rescaling(1./255)])
+def build_ViT():
+    inputs = layers.Input(shape=train_im.shape[1:])
+    rescale = rescale_layer(inputs)
+    patches = generate_patch_conv_orgPaper_f(patch_size, hidden_size, rescale)
+
+    # transformer blocks
+    encoder_out = Encoder_f(transformer_layers, mlp_dim, num_heads, patches)
+
+    # classification
+    im_representation = tf.reduce_mean(encoder_out, axis=1)
+
+    logits = layers.Dense(units=len(class_types), name='head', kernel_initializer=tf.keras.initializers.zeros)(im_representation)
+    final_model = tf.keras.Model(inputs = inputs, outputs = logits)
+    return final_model
+
+ViT_model = build_ViT()
+ViT_model.summary()
