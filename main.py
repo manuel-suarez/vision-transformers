@@ -1,4 +1,6 @@
+import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers
 from tensorflow.keras.datasets import cifar10
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -56,6 +58,8 @@ patches = generate_patch_layer(train_iter_7im)
 
 print('patch per image and patches shape: ', patches.shape[1], '\n', patches.shape)
 
+from matplotlib import pyplot as plt
+class_types = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 def render_image_and_patches(image, patches):
     plt.figure(figsize=(6, 6))
     plt.imshow(tf.cast(image[0], tf.uint8))
