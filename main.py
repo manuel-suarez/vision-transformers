@@ -116,3 +116,33 @@ class AddPositionEmbs(layers.Layer):
         pos_embedding = tf.cast(self.pos_embedding, inputs.dtype)
         return inputs + pos_embedding
 pos_embed_layer = AddPositionEmbs(posemb_init=tf.keras.initializers.RandomNormal(stddev=0.02))
+
+'''
+ViT implementation
+'''
+def ml_block_f(mlp_dim, inputs):
+    x = layers.Dense(units=mlp_dim, activation=tf.nn.gelu)(inputs)
+    x = layers.Dropout(rate=0.1)(x)
+    x = layers.Dense(units=inputs.shape[-1], activation=tf.nn.gelu)(x)
+    x = layers.Dropout(rate=0.1)(x)
+    return x
+
+def Encoder1Dblock_f(num_heads, mlp_dim, inputs):
+    x = layers.LayerNormalization(dtype=inputs.dtype)(inputs)
+    x = layers.MultiHeadAttention(num_heads=num_heads, key_dim=inputs.shape[-1], dropout=0.1)(x, x)
+    x = layers.Add()([x, inputs]) # 1st residual part
+
+    y = layers.LayerNormalization(dtype=x.dtype)(x)
+    y = ml_block_f(mlp_dim, y)
+    y_1 = layers.Add()([y, x]) # 2nd residual part
+    return y_1
+
+def Encoder_f(num_layers, mlp_dim, num_heads, inputs):
+    x = AddPositionEmbs(posemb_init=tf.keras.initializers.RandomNormal(stddev=0.02), name='posembed_input')(inputs)
+    x = layers.Dropout(rate=0.2)(x)
+    for _ in range(num_layers):
+        x = Encoder1Dblock_f(num_heads, mlp_dim, x)
+
+    encoded = layers.LayerNormalization(name='encoder_norm')(x)
+    return encoded
+
