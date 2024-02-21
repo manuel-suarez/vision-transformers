@@ -76,3 +76,43 @@ def render_image_and_patches(image, patches):
     plt.close()
 
 render_image_and_patches(train_iter_7im, patches)
+
+### Positional Encoding Layer
+class PatchEncode_Embed(layers.Layer):
+    '''
+    1. flatten the patches
+    2. Map to dim D
+    '''
+    def __init__(self, num_patches, projection_dim):
+        super(PatchEncode_Embed, self).__init__()
+        self.num_patches = num_patches
+        self.projection = layers.Dense(units=projection_dim)
+        self.position_embedding = layers.Embedding(
+            input_dim=num_patches, output_dim=projection_dim
+        )
+    def call(self, patch):
+        positions = tf.range(start=0, limit=self.num_patches, delta=1)
+        encoded = self.projection(patch) + self.position_embedding(positions)
+        return encoded
+
+def generate_patch_conv_orgPaper_f(patch_size, hidden_size, inputs):
+    patches = layers.Conv2D(filters=hidden_size, kernel_size=patch_size, strides=patch_size, padding='valid')(inputs)
+    row_axis, col_axis = (1, 2)
+    seq_len = (inputs.shape[row_axis] // patch_size) * (inputs.shape[col_axis] // patch_size)
+    x = tf.reshape(patches, [-1, seq_len, hidden_size])
+    return x
+
+### Positional Encoding Layer
+class AddPositionEmbs(layers.Layer):
+    """inputs are image patches
+    Custom layer to add positional embeddings to the inputs."""
+    def __init__(self, posemb_init=None, **kwargs):
+        super().__init__(**kwargs)
+        self.posemb_init = posemb_init
+    def build(self, inputs_shape):
+        pos_emb_shape = (1, inputs_shape[1], inputs_shape[2])
+        self.pos_embedding = self.add_weight('pos_embedding', pos_emb_shape, initializer=self.posemb_init)
+    def call(self, inputs, inputs_positions=None):
+        pos_embedding = tf.cast(self.pos_embedding, inputs.dtype)
+        return inputs + pos_embedding
+pos_embed_layer = AddPositionEmbs(posemb_init=tf.keras.initializers.RandomNormal(stddev=0.02))
