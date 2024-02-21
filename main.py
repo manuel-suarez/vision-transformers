@@ -55,3 +55,17 @@ generate_patch_layer = generate_patch(patch_size=patch_size)
 patches = generate_patch_layer(train_iter_7im)
 
 print('patch per image and patches shape: ', patches.shape[1], '\n', patches.shape)
+
+def render_image_and_patches(image, patches):
+    plt.figure(figsize=(6, 6))
+    plt.imshow(tf.cast(image[0], tf.uint8))
+    plt.xlabel(class_types [np.argmax(train_iter_7label)], fontsize=13)
+    n = int(np.sqrt(patches.shape[1]))
+    plt.figure(figsize=(6, 6))
+    for i, patch in enumerate(patches[0]):
+        ax = plt.subplot(n, n, i+1)
+        patch_img = tf.reshape(patch, (patch_size, patch_size, 3))
+        ax.imshow(patch_img.numpy().astype("uint8"))
+        ax.axis("off")
+
+render_image_and_patches(train_iter_7im, patches)
