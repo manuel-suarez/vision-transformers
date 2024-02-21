@@ -60,10 +60,11 @@ print('patch per image and patches shape: ', patches.shape[1], '\n', patches.sha
 
 from matplotlib import pyplot as plt
 class_types = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-def render_image_and_patches(fname, image, patches):
+def render_image_and_patches(image, patches):
     plt.figure(figsize=(6, 6))
     plt.imshow(tf.cast(image[0], tf.uint8))
     plt.xlabel(class_types [np.argmax(train_iter_7label)], fontsize=13)
+    plt.savefig('figure01.png')
     n = int(np.sqrt(patches.shape[1]))
     plt.figure(figsize=(6, 6))
     for i, patch in enumerate(patches[0]):
@@ -71,7 +72,7 @@ def render_image_and_patches(fname, image, patches):
         patch_img = tf.reshape(patch, (patch_size, patch_size, 3))
         ax.imshow(patch_img.numpy().astype("uint8"))
         ax.axis("off")
-    plt.savefig(fname)
+    plt.savefig('figure02.png')
     plt.close()
 
-render_image_and_patches('figure01.png', train_iter_7im, patches)
+render_image_and_patches(train_iter_7im, patches)
